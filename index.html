@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sayan pal</title>
+<meta name="description" content="Sayan Pal - CS undergrad, AI/ML enthusiast, IEEE published author.">
+<meta name="theme-color" content="#07080d">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,700;1,300&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#07080d;--bg1:#0c0e16;--bg2:#121520;
+  --blue:#4A9EFF;--cyan:#00E5FF;--gold:#F5C842;
+  --red:#FF4757;--green:#69FF8C;--purple:#9B6DFF;
+  --text:#b0b8d0;--muted:#3d4258;
+  --border:rgba(255,255,255,0.05);--border2:rgba(74,158,255,0.1);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;overflow-x:hidden;cursor:none}
+::-webkit-scrollbar{width:2px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:rgba(74,158,255,0.25);border-radius:2px}
+::selection{background:rgba(74,158,255,0.15)}
+
+/* ── CURSOR — lives directly in body, NEVER inside a filtered wrapper ── */
+#cur,#cur2{
+  position:fixed;pointer-events:none;
+  /* highest possible z-index, always on top */
+  z-index:2147483647;
+  transform:translate(-50%,-50%);
+  will-change:left,top;
+}
+#cur{width:5px;height:5px;background:var(--blue);border-radius:50%;transition:transform .1s,background .2s}
+#cur2{width:22px;height:22px;border:1px solid rgba(74,158,255,0.35);border-radius:50%;transition:width .2s,height .2s,border-color .2s}
+.cursor-grow #cur{background:var(--cyan);transform:translate(-50%,-50%) scale(2.5)}
+.cursor-grow #cur2{width:36px;height:36px;border-color:rgba(0,229,255,0.5)}
+
+/* cursor trails */
+.trail{position:fixed;pointer-events:none;z-index:2147483646;border-radius:50%;transform:translate(-50%,-50%);width:3px;height:3px;background:var(--cyan);will-change:left,top}
+
+/* ── PAGE WRAPPER — filters go here, NOT on body ── */
+#page-wrap{
+  position:relative;
+  transition:filter .3s;
+}
+
+/* ── FIXED OVERLAYS (inside page-wrap but pointer-events:none so cursor still works) ── */
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.scanlines{position:fixed;inset:0;z-index:1;pointer-events:none;background:linear-gradient(to bottom,transparent 50%,rgba(74,158,255,0.025) 51%);background-size:100% 4px}
+.cyber-grid{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:50px 50px;opacity:0.5;animation:grid-move 15s linear infinite}
+@keyframes grid-move{0%{transform:translate(0,0)}100%{transform:translate(50px,50px)}}
+
+/* ── PROGRESS BAR ── */
+#prog{position:fixed;top:0;left:0;height:2px;background:var(--blue);z-index:200;box-shadow:0 0 6px rgba(74,158,255,.5);width:0;pointer-events:none}
+
+/* ── LOADER ── */
+#loader{position:fixed;inset:0;background:var(--bg);z-index:10000;display:flex;align-items:center;justify-content:center;transition:opacity .5s,visibility .5s;pointer-events:none}
+#loader.done{opacity:0;visibility:hidden}
+.loader-text{font-family:'Syne',sans-serif;font-size:1.1rem;color:var(--blue);animation:lpulse 1.4s infinite}
+@keyframes lpulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.2rem 2.5rem;display:flex;justify-content:space-between;align-items:center;transition:all .4s;pointer-events:auto}
+nav.s{background:rgba(7,8,13,0.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border2)}
+.n-logo{font-family:'Syne',sans-serif;font-size:.85rem;font-weight:800;color:var(--text);text-decoration:none}
+.n-logo em{color:var(--blue);font-style:normal}
+.n-links{display:flex;gap:2.2rem;list-style:none}
+.n-links a{font-size:.58rem;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color .2s}
+.n-links a:hover{color:var(--blue)}
+.menu-btn{display:none;flex-direction:column;gap:4px;background:none;border:none;cursor:none;padding:5px;z-index:101}
+.menu-btn span{width:20px;height:2px;background:var(--text);transition:all .3s;display:block}
+.menu-btn.active span:first-child{transform:rotate(45deg) translate(4px,4px)}
+.menu-btn.active span:last-child{transform:rotate(-45deg) translate(4px,-4px)}
+.menu-btn.active span:nth-child(2){opacity:0}
+.mobile-menu{position:fixed;inset:0;background:rgba(7,8,13,.98);z-index:99;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2rem;opacity:0;pointer-events:none;transition:opacity .3s}
+.mobile-menu.active{opacity:1;pointer-events:auto}
+.mobile-menu a{font-size:.9rem;letter-spacing:4px;text-transform:uppercase;color:var(--text);text-decoration:none;transition:color .2s}
+.mobile-menu a:hover{color:var(--blue)}
+
+/* ── SCROLL TOP ── */
+.scroll-top{position:fixed;bottom:2rem;right:2rem;width:38px;height:38px;background:var(--bg1);border:1px solid var(--border2);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:none;opacity:0;transform:translateY(20px);transition:all .3s;z-index:90;pointer-events:none}
+.scroll-top.visible{opacity:1;transform:translateY(0);pointer-events:auto}
+.scroll-top:hover{border-color:var(--blue);background:rgba(74,158,255,0.1)}
+.scroll-top svg{width:14px;height:14px;stroke:var(--blue);fill:none}
+
+/* ── SECTIONS ── */
+section{position:relative;z-index:1}
+.wrap{max-width:1060px;margin:0 auto;padding:0 2.5rem;width:100%}
+.sec-divider{width:28px;height:2px;background:var(--blue);margin-bottom:.7rem}
+.sec-label{font-size:.54rem;letter-spacing:4px;text-transform:uppercase;color:var(--blue);margin-bottom:.5rem}
+.sec-h{font-family:'Syne',sans-serif;font-size:clamp(1.6rem,3vw,2.6rem);font-weight:800;line-height:.95;color:#fff;margin-bottom:2.8rem}
+
+/* ── HERO ── */
+#hero{min-height:100vh;display:flex;align-items:center;padding:8rem 0 5rem}
+.hero-grid{display:grid;grid-template-columns:1fr 330px;gap:5rem;align-items:center}
+.h-badge{display:inline-flex;align-items:center;gap:.55rem;background:rgba(105,255,140,0.05);border:1px solid rgba(105,255,140,0.15);padding:.3rem .9rem;border-radius:999px;font-size:.56rem;letter-spacing:2px;color:#69ff8c;margin-bottom:1.8rem;text-transform:uppercase}
+.h-dot{width:5px;height:5px;background:var(--green);border-radius:50%;animation:pls 2s infinite}
+@keyframes pls{0%,100%{box-shadow:0 0 0 0 rgba(105,255,140,.4)}50%{box-shadow:0 0 0 4px rgba(105,255,140,0)}}
+.h-name{font-family:'Syne',sans-serif;font-size:clamp(2.8rem,6vw,5.5rem);font-weight:800;line-height:.9;letter-spacing:-2px;color:#fff;will-change:transform,opacity}
+.h-name .bl{color:var(--blue)}
+
+/* glitch on name */
+.glitch-wrap{position:relative;display:inline-block}
+.glitch-wrap::before,.glitch-wrap::after{content:attr(data-text);position:absolute;left:0;top:0;width:100%;height:100%}
+.glitch-wrap::before{color:var(--red);animation:ga 6s infinite;clip-path:polygon(0 30%,100% 30%,100% 50%,0 50%)}
+.glitch-wrap::after{color:var(--cyan);animation:gb 6s infinite;clip-path:polygon(0 60%,100% 60%,100% 75%,0 75%)}
+@keyframes ga{0%,88%,100%{transform:translate(0);opacity:0}89%{transform:translate(-3px,1px);opacity:.9}91%{transform:translate(3px,-1px);opacity:.9}93%{transform:translate(0);opacity:0}}
+@keyframes gb{0%,90%,100%{transform:translate(0);opacity:0}91%{transform:translate(3px,2px);opacity:.8}94%{transform:translate(-3px,-1px);opacity:.8}96%{transform:translate(0);opacity:0}}
+
+.h-tw{font-size:.68rem;color:rgba(74,158,255,0.65);margin-top:1.4rem;min-height:1.1rem;font-style:italic}
+.cb{display:inline-block;width:2px;height:.85em;background:var(--blue);margin-left:1px;vertical-align:text-bottom;animation:bk .9s infinite}
+@keyframes bk{0%,100%{opacity:1}50%{opacity:0}}
+.h-sub{margin-top:1rem;font-size:.65rem;color:var(--muted);line-height:2;max-width:500px;will-change:transform}
+.h-sub .w{color:var(--text)}.h-sub .g{color:var(--gold)}
+.h-chips{display:flex;gap:.45rem;flex-wrap:wrap;margin-top:1.2rem}
+.chip{font-size:.53rem;letter-spacing:1.5px;text-transform:uppercase;padding:.2rem .6rem;border-radius:3px;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.055);color:var(--muted);transition:all .2s}
+.chip:hover{transform:translateY(-1px)}
+.chip.a{border-color:rgba(23,147,209,0.25);color:#1793d1}
+.chip.b{border-color:rgba(74,158,255,0.2);color:var(--blue)}
+.chip.o{border-color:rgba(245,200,66,0.18);color:var(--gold)}
+.h-cta{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.8rem}
+
+/* buttons */
+.btn{padding:.62rem 1.3rem;font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;border-radius:4px;transition:all .25s;cursor:none;border:none;position:relative;overflow:hidden}
+.bf{background:var(--blue);color:#07080d;font-weight:700}
+.bf:hover{background:var(--cyan);transform:translateY(-2px);box-shadow:0 8px 20px rgba(74,158,255,.2)}
+.bo{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.08)}
+.bo:hover{border-color:rgba(74,158,255,.3);color:var(--blue);transform:translateY(-2px)}
+/* shimmer sweep on hover */
+.btn::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);transition:left .4s}
+.btn:hover::after{left:150%}
+
+/* terminal card */
+.h-term{background:var(--bg1);border:1px solid var(--border2);border-radius:10px;overflow:hidden;font-size:.65rem}
+.tbar{background:rgba(255,255,255,.025);padding:.62rem .9rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.4rem}
+.tb{width:9px;height:9px;border-radius:50%}
+.tb.r{background:#ff5f57}.tb.y{background:#febc2e}.tb.g{background:#28c840}
+.tt{font-size:.52rem;color:var(--muted);margin-left:.5rem;letter-spacing:1px}
+.tbody{padding:1.2rem}
+.tl{display:block;line-height:1.9}
+.tp{color:var(--green)}.tc{color:var(--text)}.tk{color:var(--blue)}
+.tv{color:#a5d6ff}.ts{color:var(--gold)}.tm{color:var(--muted)}
+
+/* scroll hint */
+.sh{position:absolute;bottom:2rem;left:2.5rem;display:flex;align-items:center;gap:.7rem;font-size:.52rem;letter-spacing:3px;color:var(--muted)}
+.sl{width:32px;height:1px;background:linear-gradient(to right,var(--blue),transparent)}
+
+/* ── IEEE ── */
+#paper{padding:8rem 0}
+.ieee-wrap{background:rgba(74,158,255,0.025);border:1px solid rgba(74,158,255,0.14);border-radius:14px;padding:2.2rem;position:relative;overflow:hidden}
+.ieee-wrap::before{content:'IEEE';position:absolute;right:1.2rem;top:.3rem;font-family:'Syne',sans-serif;font-size:6rem;font-weight:800;color:rgba(74,158,255,0.03);line-height:1;pointer-events:none}
+.ieee-badge{display:inline-flex;align-items:center;gap:.45rem;background:rgba(74,158,255,0.08);border:1px solid rgba(74,158,255,0.18);padding:.26rem .8rem;border-radius:999px;font-size:.53rem;letter-spacing:2px;color:var(--blue);text-transform:uppercase;margin-bottom:1.2rem}
+.ieee-dot{width:4px;height:4px;background:var(--blue);border-radius:50%}
+.ieee-title{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;color:#fff;line-height:1.35;margin-bottom:.9rem;max-width:640px}
+.ieee-meta{font-size:.6rem;color:var(--muted);line-height:2;margin-bottom:1.1rem}
+.ieee-meta span{color:var(--text)}
+.ieee-abs{font-size:.65rem;color:var(--muted);line-height:1.85;max-width:680px;border-left:2px solid rgba(74,158,255,0.22);padding-left:1rem;margin-bottom:1.5rem}
+.ieee-tags{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:1.4rem}
+.itag{font-size:.54rem;padding:.15rem .55rem;background:rgba(155,109,255,0.07);border:1px solid rgba(155,109,255,0.13);border-radius:3px;color:#b898ff}
+.ieee-link{display:inline-flex;align-items:center;gap:.4rem;font-size:.6rem;color:var(--blue);text-decoration:none;letter-spacing:1px;transition:all .2s}
+.ieee-link:hover{color:var(--cyan);gap:.75rem}
+
+/* ── PROJECTS ── */
+#projects{padding:5rem 0 8rem}
+.pgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+.pc{background:var(--bg1);border:1px solid var(--border);border-radius:9px;padding:1.5rem;position:relative;overflow:hidden;transition:all .35s cubic-bezier(.16,1,.3,1);transform-style:preserve-3d}
+.pc::after{content:'';position:absolute;inset:0;opacity:0;transition:opacity .35s;pointer-events:none;border-radius:9px}
+.pc.c1::after{background:radial-gradient(circle at 0 0,rgba(255,71,87,.06),transparent 55%)}
+.pc.c2::after{background:radial-gradient(circle at 0 0,rgba(74,158,255,.05),transparent 55%)}
+.pc.c3::after{background:radial-gradient(circle at 0 0,rgba(105,255,140,.05),transparent 55%)}
+.pc.c4::after{background:radial-gradient(circle at 0 0,rgba(245,200,66,.05),transparent 55%)}
+.pc:hover{transform:translateY(-3px) perspective(1000px);border-color:rgba(255,255,255,.09)}
+.pc:hover::after{opacity:1}
+.pc.s2{grid-column:span 2}
+.p-num{font-family:'Syne',sans-serif;font-size:3rem;font-weight:800;color:rgba(255,255,255,.025);position:absolute;right:.7rem;top:.2rem;line-height:1;pointer-events:none;animation:float 6s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.pc:nth-child(2) .p-num{animation-delay:.5s}.pc:nth-child(3) .p-num{animation-delay:1s}.pc:nth-child(4) .p-num{animation-delay:1.5s}
+.ptags{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.7rem}
+.pt{font-size:.5rem;letter-spacing:1.5px;text-transform:uppercase;padding:.14rem .48rem;border-radius:3px}
+.pt.cli{background:rgba(255,71,87,.09);color:#ff7a85}
+.pt.ops{background:rgba(74,158,255,.09);color:var(--blue)}
+.pt.ml{background:rgba(105,255,140,.09);color:var(--green)}
+.pt.web{background:rgba(245,200,66,.09);color:var(--gold)}
+.pt.st{background:rgba(155,109,255,.09);color:#b898ff}
+.p-title{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;color:#fff;margin-bottom:.5rem}
+.p-desc{font-size:.64rem;color:var(--muted);line-height:1.8;margin-bottom:.9rem}
+.p-desc .hl{color:var(--text)}
+.pills{display:flex;flex-wrap:wrap;gap:.28rem;margin-bottom:.9rem}
+.pill{font-size:.52rem;padding:.12rem .45rem;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05);border-radius:3px;color:var(--muted)}
+.p-link{font-size:.58rem;color:var(--blue);text-decoration:none;letter-spacing:1px;transition:all .2s;display:inline-flex;align-items:center;gap:.35rem}
+.p-link:hover{color:var(--cyan);gap:.65rem}
+
+/* ── STACK ── */
+#stack{padding:5rem 0 8rem}
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:.9rem;margin-top:2.2rem}
+.sg{background:var(--bg1);border:1px solid var(--border);border-radius:9px;padding:1.3rem;transition:all .3s}
+.sg:hover{border-color:var(--border2);transform:translateY(-2px)}
+.sg-lbl{font-size:.52rem;letter-spacing:3px;text-transform:uppercase;color:var(--blue);margin-bottom:.75rem}
+.sg-chips{display:flex;flex-wrap:wrap;gap:.35rem}
+.sc{font-size:.6rem;padding:.2rem .6rem;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05);border-radius:4px;color:var(--text);transition:all .2s}
+.sc:hover{border-color:rgba(74,158,255,.25);color:var(--blue)}
+.sc.hi{border-color:rgba(23,147,209,.28);color:#1793d1}
+
+/* timeline */
+.timeline{position:relative;padding-left:1.5rem;margin-top:2.5rem}
+.timeline::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--blue),transparent)}
+.t-item{position:relative;margin-bottom:1.5rem;padding-left:1rem}
+.t-item::before{content:'';position:absolute;left:-1.6rem;top:.35rem;width:8px;height:8px;background:var(--bg);border:2px solid var(--blue);border-radius:50%}
+.t-date{font-size:.54rem;color:var(--blue);letter-spacing:2px;text-transform:uppercase;margin-bottom:.3rem}
+.t-title{font-family:'Syne',sans-serif;font-size:.82rem;color:#fff;font-weight:700;margin-bottom:.2rem}
+.t-desc{font-size:.6rem;color:var(--muted);line-height:1.6}
+
+/* ── COMMUNITY ── */
+#community{padding:5rem 0 8rem}
+.gdg-card{background:var(--bg1);border:1px solid var(--border2);border-radius:12px;padding:2rem;display:flex;align-items:center;gap:2.5rem;margin-top:2.2rem;transition:all .3s}
+.gdg-card:hover{border-color:rgba(74,158,255,.28);transform:translateY(-2px)}
+.gdg-logo{display:flex;gap:.3rem;align-items:center;flex-shrink:0}
+.gd{width:13px;height:13px;border-radius:50%}
+.gdg-text h3{font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;color:#fff;margin-bottom:.35rem}
+.gdg-text p{font-size:.64rem;color:var(--muted);line-height:1.8}
+.gdg-text p span{color:var(--text)}
+
+/* ── FOOTER ── */
+footer{position:relative;z-index:1;padding:5rem 0 2rem;border-top:1px solid var(--border)}
+.foot{max-width:1060px;margin:0 auto;padding:0 2.5rem;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:2rem}
+.f-big{font-family:'Syne',sans-serif;font-size:clamp(2rem,5vw,4.5rem);font-weight:800;color:rgba(255,255,255,.03);line-height:1;user-select:none}
+.f-sub{font-size:.54rem;color:var(--muted);margin-top:.4rem;letter-spacing:1px}
+.f-links{display:flex;gap:1.8rem}
+.fl{font-size:.6rem;color:var(--muted);text-decoration:none;letter-spacing:1px;transition:color .2s}
+.fl:hover{color:var(--blue)}
+.f-copy{max-width:1060px;margin:2rem auto 0;padding:0 2.5rem;font-size:.52rem;color:rgba(255,255,255,.07);letter-spacing:2px}
+
+/* ── SCROLL REVEAL ── */
+.rv{opacity:0;transform:translateY(22px);transition:opacity .75s cubic-bezier(.16,1,.3,1),transform .75s cubic-bezier(.16,1,.3,1)}
+.rv.fl-{transform:translateX(-26px)}.rv.fr-{transform:translateX(26px)}.rv.sc-{transform:scale(.97);opacity:0}
+.rv.vs{opacity:1!important;transform:none!important}
+.d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}.d4{transition-delay:.32s}.d5{transition-delay:.4s}
+
+/* ── PARTICLE EXPLOSION ── */
+.pex{position:fixed;pointer-events:none;z-index:500}
+.pex-dot{position:absolute;width:3px;height:3px;background:var(--cyan);border-radius:50%;animation:pexplode .8s ease-out forwards}
+@keyframes pexplode{to{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}}
+
+/* ── CYBER MODE ── */
+.cyber-mode #page-wrap{filter:hue-rotate(180deg) saturate(1.8) contrast(1.15)}
+.cyber-mode .cyber-grid{opacity:1!important;animation-duration:6s}
+
+/* ── SCROLL SKEW (applied via JS to sections only) ── */
+.skewable{transition:transform .1s}
+
+/* ── DATA STREAM ── */
+#data-stream{position:fixed;bottom:1.5rem;left:1.5rem;z-index:50;font-size:.48rem;color:rgba(105,255,140,0.35);letter-spacing:1px;pointer-events:none;font-family:'JetBrains Mono',monospace}
+
+@media(max-width:900px){
+  .hero-grid{grid-template-columns:1fr}.h-term{display:none}
+  .pgrid{grid-template-columns:1fr}.pc.s2{grid-column:1}
+  .sgrid{grid-template-columns:1fr 1fr}.gdg-card{flex-direction:column;gap:1.5rem}
+  nav .n-links{display:none}.menu-btn{display:flex}
+  .wrap{padding:0 1.5rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ── CURSOR — direct children of body, NOT inside any filtered wrapper ── -->
+<div id="cur"></div>
+<div id="cur2"></div>
+
+<!-- ── PROGRESS + LOADER + SCROLL-TOP — also outside wrapper ── -->
+<div id="prog"></div>
+<div id="loader"><div class="loader-text">initializing...</div></div>
+<button class="scroll-top" id="scrollTop" aria-label="top">
+  <svg viewBox="0 0 24 24" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
+</button>
+<div id="data-stream">// online // arch // dwm // 3am</div>
+
+<!-- ── ALL PAGE CONTENT inside wrapper (filters applied here, not body) ── -->
+<div id="page-wrap">
+
+<canvas id="bg-canvas"></canvas>
+<div class="cyber-grid"></div>
+<div class="scanlines"></div>
+
+<nav id="nav">
+  <a class="n-logo" href="#"><em>//</em> sayan pal</a>
+  <ul class="n-links">
+    <li><a href="#paper">research</a></li>
+    <li><a href="#projects">projects</a></li>
+    <li><a href="#stack">stack</a></li>
+    <li><a href="#community">community</a></li>
+  </ul>
+  <button class="menu-btn" id="menuBtn" aria-label="menu"><span></span><span></span><span></span></button>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#paper">research</a>
+  <a href="#projects">projects</a>
+  <a href="#stack">stack</a>
+  <a href="#community">community</a>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <div class="h-badge rv d1"><span class="h-dot"></span> open to opportunities</div>
+        <h1 class="h-name rv d2">
+          <span class="glitch-wrap" data-text="SAYAN">SAYAN</span><br>
+          <span class="bl glitch-wrap" data-text="PAL">PAL</span>
+        </h1>
+        <div class="h-tw rv d3"><span id="tw"></span><span class="cb"></span></div>
+        <p class="h-sub rv d3">cs undergrad <span class="w">@kiit</span> • online when the world sleeps • git commit -m <span class="g">"fix tomorrow"</span> • drops things, including production • <span class="w">todo: fix the lassi overflow</span></p>
+        <div class="h-chips rv d4">
+          <span class="chip a">arch linux</span><span class="chip a">dwm</span>
+          <span class="chip b">gdg kiit</span><span class="chip b">cloud</span>
+          <span class="chip o">over/flow</span>
+        </div>
+        <div class="h-cta rv d5">
+          <a href="https://github.com/sayanx64" target="_blank" class="btn bf">~/sayanx64</a>
+          <a href="https://linkedin.com/in/sayarch" target="_blank" class="btn bo">linkedin</a>
+          <a href="mailto:sayan@sayan.cyou" class="btn bo">say hello</a>
+        </div>
+      </div>
+      <div class="h-term rv fr- d3">
+        <div class="tbar"><div class="tb r"></div><div class="tb y"></div><div class="tb g"></div><span class="tt">~/.config/sayan</span></div>
+        <div class="tbody">
+          <span class="tl"><span class="tp">❯</span> <span class="tc">cat about.conf</span></span>
+          <span class="tl">&nbsp;</span>
+          <span class="tl"><span class="tk">os      </span><span class="tv">arch linux x86_64</span></span>
+          <span class="tl"><span class="tk">wm      </span><span class="tv">dwm (patched)</span></span>
+          <span class="tl"><span class="tk">shell   </span><span class="tv">zsh</span></span>
+          <span class="tl"><span class="tk">editor  </span><span class="tv">whatever works</span></span>
+          <span class="tl"><span class="tk">cgpa    </span><span class="ts">9.24</span></span>
+          <span class="tl"><span class="tk">papers  </span><span class="ts">1 (ieee)</span></span>
+          <span class="tl"><span class="tk">status  </span><span class="ts" id="upt">—</span></span>
+          <span class="tl">&nbsp;</span>
+          <span class="tl"><span class="tm"># sleep.exe not found</span></span>
+          <span class="tl"><span class="tm"># todo: fix the overflow</span></span>
+          <span class="tl">&nbsp;</span>
+          <span class="tl"><span class="tp">❯</span> <span class="cb"></span></span>
+        </div>
+      </div>
+    </div>
+    <div class="sh"><div class="sl"></div><span>scroll</span></div>
+  </div>
+</section>
+
+<!-- IEEE -->
+<section id="paper">
+  <div class="wrap">
+    <div class="rv"><div class="sec-divider"></div><div class="sec-label">// research</div><h2 class="sec-h">PUBLISHED<br>WORK</h2></div>
+    <div class="ieee-wrap rv d2 sc-">
+      <div class="ieee-badge"><span class="ieee-dot"></span> ieee xplore • nov 2025</div>
+      <div class="ieee-title" id="ieee-title">Semi-Supervised Oral Cancer Image Classification Using GAN-based Augmentation and EfficientNet-B3</div>
+      <div class="ieee-meta"><span>Sayan Pal</span>, Utkarsh, Shoham Chakraborty, Saurabh Bilgaiyan, Chiranjib Parida<br><span>2025 3rd DMIHER International Conference on AI in Healthcare, Education and Industry</span><br><span>Wardha, India</span> • DOI: <span>10.1109/IDICAIHEI65991.2025.11379848</span></div>
+      <div class="ieee-abs">A semi-supervised framework for oral cancer detection combining EfficientNet-B3 with GAN-based data augmentation to tackle limited annotated medical data. Integrates supervised classification, semi-supervised feature learning via SSGAN, and few-shot evaluation using Prototypical Networks — towards scalable AI-assisted cancer screening.</div>
+      <div class="ieee-tags">
+        <span class="itag">EfficientNet-B3</span><span class="itag">GAN / SSGAN</span><span class="itag">Prototypical Networks</span>
+        <span class="itag">Semi-Supervised Learning</span><span class="itag">Medical Imaging</span><span class="itag">Few-Shot Learning</span><span class="itag">PyTorch</span>
+      </div>
+      <a href="https://ieeexplore.ieee.org/document/11379848" target="_blank" class="ieee-link">read on ieee xplore →</a>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects" class="skewable">
+  <div class="wrap">
+    <div class="rv"><div class="sec-divider"></div><div class="sec-label">// projects</div><h2 class="sec-h">THINGS<br>I BUILT</h2></div>
+    <div class="pgrid" style="margin-top:0">
+      <div class="pc c1 rv d1">
+        <div class="p-num">01</div>
+        <div class="ptags"><span class="pt cli">CLI</span><span class="pt st">★ 105</span></div>
+        <div class="p-title">phub-cli</div>
+        <p class="p-desc">Terminal browser for people who refuse to leave the terminal. <span class="hl">105 stars</span> — apparently a gap in the market.</p>
+        <div class="pills"><span class="pill">Bash</span><span class="pill">Python</span><span class="pill">fzf</span><span class="pill">yt-dlp</span><span class="pill">mpv</span></div>
+        <a href="https://github.com/curtosis-org/phub-cli" target="_blank" class="p-link">github →</a>
+      </div>
+      <div class="pc c2 s2 rv d2">
+        <div class="p-num">02</div>
+        <div class="ptags"><span class="pt ops">Self-Hosted</span><span class="pt ops">Networking</span></div>
+        <div class="p-title">Self-Hosted Mail Server</div>
+        <p class="p-desc">Full mail stack on Debian Trixie. Postfix, Dovecot, TLS, Fail2Ban, IPv6. Built it because <span class="hl">paying for email is a philosophical failure</span>. Production-grade security, zero secrets in version control.</p>
+        <div class="pills"><span class="pill">Postfix</span><span class="pill">Dovecot</span><span class="pill">Certbot</span><span class="pill">Fail2Ban</span><span class="pill">Debian</span><span class="pill">IPv6</span></div>
+        <a href="https://github.com/sayanx64" target="_blank" class="p-link">github →</a>
+      </div>
+      <div class="pc c3 s2 rv d3">
+        <div class="p-num">03</div>
+        <div class="ptags"><span class="pt ml">MedTech</span><span class="pt ops">Cloud</span></div>
+        <div class="p-title">MedSync</div>
+        <p class="p-desc">OpenEMR research on patient data flow in Indian hospitals. Deployed on GCP, OAuth 2.0, REST APIs, custom module. The real value was <span class="hl">navigating a production-grade open source codebase</span> and understanding healthcare infrastructure end-to-end.</p>
+        <div class="pills"><span class="pill">OpenEMR</span><span class="pill">GCP</span><span class="pill">OAuth 2.0</span><span class="pill">MySQL</span><span class="pill">PHP</span></div>
+        <a href="https://github.com/sayanx64" target="_blank" class="p-link">github →</a>
+      </div>
+      <div class="pc c4 rv d4">
+        <div class="p-num">04</div>
+        <div class="ptags"><span class="pt web">Web</span><span class="pt ml">ML</span></div>
+        <div class="p-title">Ukulele Tuner</div>
+        <p class="p-desc">Browser tuner, real-time mic, ML pitch detection (CREPE). Weekend thing. Works.</p>
+        <div class="pills"><span class="pill">p5.js</span><span class="pill">ml5.js</span><span class="pill">CREPE</span></div>
+        <a href="https://github.com/sayanx64" target="_blank" class="p-link">github →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STACK -->
+<section id="stack" class="skewable">
+  <div class="wrap">
+    <div class="rv"><div class="sec-divider"></div><div class="sec-label">// stack</div><h2 class="sec-h">TOOLS &<br>STACK</h2></div>
+    <div class="sgrid">
+      <div class="sg rv d1"><div class="sg-lbl">languages</div><div class="sg-chips"><span class="sc">Python</span><span class="sc">C</span><span class="sc">C++</span><span class="sc">Bash</span><span class="sc">Shell</span></div></div>
+      <div class="sg rv d2"><div class="sg-lbl">system</div><div class="sg-chips"><span class="sc hi">Arch Linux</span><span class="sc hi">dwm</span><span class="sc">Debian</span><span class="sc">Ubuntu</span><span class="sc">Kali</span></div></div>
+      <div class="sg rv d3"><div class="sg-lbl">ml / data</div><div class="sg-chips"><span class="sc">PyTorch</span><span class="sc">Pandas</span><span class="sc">NumPy</span><span class="sc">Matplotlib</span><span class="sc">Seaborn</span></div></div>
+      <div class="sg rv d2"><div class="sg-lbl">cloud / infra</div><div class="sg-chips"><span class="sc">GCP</span><span class="sc">Apache</span><span class="sc">Postfix</span><span class="sc">self-hosted</span></div></div>
+      <div class="sg rv d3"><div class="sg-lbl">tools</div><div class="sg-chips"><span class="sc">Git</span><span class="sc">Postman</span><span class="sc">MySQL</span><span class="sc">Jupyter</span><span class="sc">Hoppscotch</span></div></div>
+      <div class="sg rv d4"><div class="sg-lbl">web</div><div class="sg-chips"><span class="sc">HTML/CSS</span><span class="sc">PHP</span><span class="sc">p5.js</span><span class="sc">ml5.js</span><span class="sc">BeautifulSoup</span></div></div>
+    </div>
+    <div class="timeline rv d3">
+      <div class="t-item"><div class="t-date">2024 — Present</div><div class="t-title">Computer Science @ KIIT</div><div class="t-desc">B.Tech CS undergrad. CGPA 9.24. Focus on AI/ML systems.</div></div>
+      <div class="t-item"><div class="t-date">Nov 2025</div><div class="t-title">IEEE Published Author</div><div class="t-desc">Oral cancer classification research using GANs & EfficientNet-B3.</div></div>
+      <div class="t-item"><div class="t-date">2026 — Present</div><div class="t-title">GDG KIIT — Cloud Domain</div><div class="t-desc">Google Cloud technologies, infrastructure, community projects.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- COMMUNITY -->
+<section id="community">
+  <div class="wrap">
+    <div class="rv"><div class="sec-divider"></div><div class="sec-label">// community</div><h2 class="sec-h">COMMUNITY</h2></div>
+    <div class="gdg-card rv d2">
+      <div class="gdg-logo">
+        <div class="gd" style="background:#4285F4"></div><div class="gd" style="background:#EA4335"></div>
+        <div class="gd" style="background:#FBBC04"></div><div class="gd" style="background:#34A853"></div>
+      </div>
+      <div class="gdg-text">
+        <h3>Google Developer Groups — KIIT</h3>
+        <p><span>GDG KIIT</span>, cloud domain. Working with Google Cloud technologies, learning infrastructure, building alongside developers who take the craft seriously.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="foot">
+    <div><div class="f-big">SAYAN PAL</div><div class="f-sub">// todo: fix the lassi overflow • kiit • bhubaneswar</div></div>
+    <div><div class="f-links">
+      <a href="https://github.com/sayanx64" target="_blank" class="fl">github</a>
+      <a href="https://linkedin.com/in/sayarch" target="_blank" class="fl">linkedin</a>
+      <a href="mailto:sayan@sayan.cyou" class="fl">email</a>
+    </div></div>
+  </div>
+  <div class="f-copy">built at 3am • arch linux • git commit -m "ship it"</div>
+</footer>
+
+</div><!-- end #page-wrap -->
+
+<script>
+// ── TOUCH DETECT ──
+const isTouch=window.matchMedia('(pointer:coarse)').matches;
+if(isTouch){document.getElementById('cur').style.display='none';document.getElementById('cur2').style.display='none';document.body.style.cursor='auto'}
+
+// ── CURSOR (direct DOM manipulation, no rAF lag on transform) ──
+const cur=document.getElementById('cur'),cur2=document.getElementById('cur2');
+let mx=0,my=0,rx=0,ry=0;
+if(!isTouch){
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY},true);
+  // use requestAnimationFrame only for the lagged ring
+  const updateCursor=()=>{
+    // dot follows instantly
+    cur.style.left=mx+'px';
+    cur.style.top=my+'px';
+    // ring lags slightly
+    rx+=(mx-rx)*.12;
+    ry+=(my-ry)*.12;
+    cur2.style.left=Math.round(rx)+'px';
+    cur2.style.top=Math.round(ry)+'px';
+    requestAnimationFrame(updateCursor);
+  };
+  updateCursor();
+
+  // cursor grow on hoverable elements
+  document.addEventListener('mouseover',e=>{
+    if(e.target.closest('a,button,.sc,.chip,.sg,.pc,.gdg-card')){
+      document.body.classList.add('cursor-grow');
+    }
+  },true);
+  document.addEventListener('mouseout',e=>{
+    if(e.target.closest('a,button,.sc,.chip,.sg,.pc,.gdg-card')){
+      document.body.classList.remove('cursor-grow');
+    }
+  },true);
+
+  // cursor trails
+  const trails=[];
+  for(let i=0;i<4;i++){
+    const t=document.createElement('div');
+    t.className='trail';
+    t.style.opacity=1-(i*.2);
+    t.style.transform=`translate(-50%,-50%) scale(${1-i*.15})`;
+    document.body.appendChild(t);
+    trails.push({el:t,x:mx,y:my});
+  }
+  document.addEventListener('mousemove',e=>{
+    trails.forEach((tr,i)=>{
+      setTimeout(()=>{
+        tr.x=e.clientX;tr.y=e.clientY;
+        tr.el.style.left=tr.x+'px';tr.el.style.top=tr.y+'px';
+      },i*40);
+    });
+  },true);
+}
+
+// ── INTERACTIVE CANVAS ──
+const canvas=document.getElementById('bg-canvas');
+const ctx=canvas.getContext('2d');
+let W,H,particles=[],mouse={x:-999,y:-999};
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+resize();window.addEventListener('resize',()=>{resize();initP()});
+if(!isTouch){
+  document.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY},true);
+  document.addEventListener('mouseleave',()=>{mouse.x=-999;mouse.y=-999});
+}
+class P{
+  constructor(){this.reset(true)}
+  reset(init){
+    this.x=Math.random()*W;this.y=init?Math.random()*H:Math.random()*H;
+    this.size=Math.random()*.8+.2;
+    this.vx=(Math.random()-.5)*.2;this.vy=(Math.random()-.5)*.2;
+    this.ox=this.x;this.oy=this.y;
+    this.op=Math.random()*.28+.04;
+    this.col=Math.random()>.72?'74,158,255':Math.random()>.5?'105,255,140':'180,190,220';
+  }
+  update(){
+    const dx=this.x-mouse.x,dy=this.y-mouse.y,d=Math.sqrt(dx*dx+dy*dy);
+    if(d<120&&d>0){const f=(120-d)/120;this.x+=dx/d*f*2.5;this.y+=dy/d*f*2.5}
+    else{this.x+=(this.ox-this.x)*.006+this.vx;this.y+=(this.oy-this.y)*.006+this.vy;this.ox+=this.vx;this.oy+=this.vy;
+      if(this.ox<0)this.ox=W;if(this.ox>W)this.ox=0;if(this.oy<0)this.oy=H;if(this.oy>H)this.oy=0}
+  }
+  draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.size,0,Math.PI*2);ctx.fillStyle=`rgba(${this.col},${this.op})`;ctx.fill()}
+}
+function initP(){const n=Math.floor(W*H/(isTouch?28000:12000));particles=[];for(let i=0;i<n;i++)particles.push(new P())}
+initP();
+function drawGrid(){
+  const sz=55,off=(window.scrollY*.12)%sz;
+  ctx.strokeStyle='rgba(74,158,255,0.02)';ctx.lineWidth=.5;
+  for(let x=0;x<=W;x+=sz){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+  for(let y=-off;y<H;y+=sz){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+}
+function drawConnections(){
+  for(let i=0;i<particles.length;i++){
+    for(let j=i+1;j<particles.length;j++){
+      const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<95){ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.strokeStyle=`rgba(74,158,255,${(1-d/95)*.06})`;ctx.lineWidth=.4;ctx.stroke()}
+    }
+    if(!isTouch){
+      const dx=particles[i].x-mouse.x,dy=particles[i].y-mouse.y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<170){ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(mouse.x,mouse.y);ctx.strokeStyle=`rgba(74,158,255,${(1-d/170)*.2})`;ctx.lineWidth=.4;ctx.stroke()}
+    }
+  }
+}
+(function loop(){ctx.clearRect(0,0,W,H);drawGrid();particles.forEach(p=>{p.update();p.draw()});drawConnections();requestAnimationFrame(loop)})();
+
+// ── TYPEWRITER ──
+const lines=['// cs undergrad @ kiit','// ai & ml enthusiast','// ieee published author','// arch linux, dwm rice','// git commit -m "fix tomorrow"','// online when the world sleeps','// NullPtrException (again)','// btw i use arch'];
+let li=0,ci=0,del=false;
+const tw=document.getElementById('tw');
+function type(){const c=lines[li];tw.textContent=del?c.slice(0,ci-1):c.slice(0,ci+1);del?ci--:ci++;
+  if(!del&&ci===c.length){del=true;setTimeout(type,2000);return}
+  if(del&&ci===0){del=false;li=(li+1)%lines.length}
+  setTimeout(type,del?26:60)}
+type();
+
+// ── UPTIME ──
+const h=new Date().getHours(),m=new Date().getMinutes();
+const pad=n=>String(n).padStart(2,'0');
+document.getElementById('upt').textContent=h<5?`${h}h ${pad(m)}m — owl hours 🦉`:h<10?`${h}:${pad(m)} — up. barely.`:h<18?`${h}:${pad(m)} — daytime (suspicious)`:`${h}:${pad(m)} — night shift`;
+
+// ── SCROLL REVEAL ──
+const obs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('vs')})},{threshold:.08});
+document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
+
+// ── HERO PARALLAX ──
+const prefersRM=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+if(!prefersRM){
+  window.addEventListener('scroll',()=>{
+    const y=window.scrollY,n=document.querySelector('.h-name'),s=document.querySelector('.h-sub');
+    if(n){n.style.transform=`translateY(${y*.07}px)`;n.style.opacity=Math.max(0,1-y/450)}
+    if(s)s.style.transform=`translateY(${y*.04}px)`;
+  });
+}
+
+// ── SCROLL SKEW on sections only (NOT body, NOT page-wrap) ──
+let lastScroll=0,skewTO;
+window.addEventListener('scroll',()=>{
+  if(prefersRM)return;
+  const cur2=window.scrollY,vel=cur2-lastScroll,skew=Math.min(Math.max(vel*.04,-4),4);
+  document.querySelectorAll('.skewable').forEach(el=>el.style.transform=`skewY(${skew}deg)`);
+  clearTimeout(skewTO);skewTO=setTimeout(()=>{document.querySelectorAll('.skewable').forEach(el=>el.style.transform='')},120);
+  lastScroll=cur2;
+});
+
+// ── NAV + PROGRESS ──
+window.addEventListener('scroll',()=>{
+  const s=document.documentElement;
+  document.getElementById('prog').style.width=(s.scrollTop/(s.scrollHeight-s.clientHeight)*100)+'%';
+  document.getElementById('nav').classList.toggle('s',window.scrollY>50);
+  document.getElementById('scrollTop').classList.toggle('visible',window.scrollY>500);
+});
+
+// ── SCROLL TOP ──
+document.getElementById('scrollTop').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+
+// ── MOBILE MENU ──
+const menuBtn=document.getElementById('menuBtn'),mobileMenu=document.getElementById('mobileMenu');
+menuBtn?.addEventListener('click',()=>{menuBtn.classList.toggle('active');mobileMenu.classList.toggle('active')});
+mobileMenu?.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{menuBtn.classList.remove('active');mobileMenu.classList.remove('active')}));
+
+// ── LOADER ──
+window.addEventListener('load',()=>setTimeout(()=>document.getElementById('loader').classList.add('done'),350));
+
+// ── MAGNETIC TILT on project cards ──
+document.querySelectorAll('.pc').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    const r=card.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+    const rx=(y-r.height/2)/14,ry=-(x-r.width/2)/14;
+    card.style.transform=`translateY(-3px) perspective(800px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+  });
+  card.addEventListener('mouseleave',()=>card.style.transform='');
+});
+
+// ── CLICK PARTICLES ──
+function boom(x,y){
+  const c=document.createElement('div');c.className='pex';
+  c.style.left=x+'px';c.style.top=y+'px';
+  for(let i=0;i<12;i++){
+    const d=document.createElement('div');d.className='pex-dot';
+    const angle=(Math.PI*2*i)/12,dist=30+Math.random()*60;
+    d.style.setProperty('--tx',Math.cos(angle)*dist+'px');
+    d.style.setProperty('--ty',Math.sin(angle)*dist+'px');
+    c.appendChild(d);
+  }
+  document.body.appendChild(c);
+  setTimeout(()=>c.remove(),900);
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('a,button'))boom(e.clientX,e.clientY);
+});
+
+// ── DATA STREAM CYCLING ──
+const msgs=['// online // arch // dwm // 3am','// sleep.exe not found','// git commit -m "fix later"','// NullPtrException #47','// btw i use arch'];
+let di=0;
+setInterval(()=>{di=(di+1)%msgs.length;document.getElementById('data-stream').textContent=msgs[di]},4000);
+
+// ── IEEE TITLE DECODE ANIMATION ──
+const decodeEl=document.getElementById('ieee-title');
+const origText=decodeEl.textContent;
+const decObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting&&!e.target.dataset.decoded){
+      e.target.dataset.decoded='1';
+      const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$<>';
+      let i=0;
+      const t=setInterval(()=>{
+        if(i>=origText.length){clearInterval(t);decodeEl.textContent=origText;return}
+        decodeEl.textContent=origText.slice(0,i)+
+          Array.from({length:origText.length-i},(_,k)=>Math.random()<.3?chars[Math.floor(Math.random()*chars.length)]:origText[i+k]||' ').join('');
+        i++;
+      },25);
+    }
+  });
+},{threshold:.5});
+decObs.observe(decodeEl);
+
+// ── C KEY = CYBER MODE ──
+let cyberOn=false;
+document.addEventListener('keydown',e=>{
+  if(e.key.toLowerCase()==='c'&&!e.target.closest('input,textarea')){
+    cyberOn=!cyberOn;
+    document.body.classList.toggle('cyber-mode',cyberOn);
+    if(cyberOn)for(let i=0;i<8;i++)setTimeout(()=>boom(Math.random()*innerWidth,Math.random()*innerHeight),i*80);
+  }
+});
+
+// ── KONAMI ──
+let kp=0,kc=[38,38,40,40,37,39,37,39,66,65];
+document.addEventListener('keydown',e=>{kp=e.keyCode===kc[kp]?kp+1:0;
+  if(kp===kc.length){kp=0;
+    const eg=document.createElement('div');
+    eg.style.cssText='position:fixed;inset:0;background:rgba(7,8,13,.96);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.7rem;font-family:JetBrains Mono,monospace;cursor:pointer';
+    eg.innerHTML='<div style="font-size:.52rem;letter-spacing:4px;color:#4A9EFF;text-transform:uppercase">fatal error</div><div style="font-family:Syne,sans-serif;font-size:3rem;font-weight:800;color:#fff">LASSI OVERFLOW</div><div style="font-size:.65rem;color:#3d4258">lassi.pour() → capacity exceeded → todo: fix</div><div style="font-size:.65rem;color:#3d4258">assignee: sayan | priority: low | due: never</div><div style="margin-top:1rem;font-size:.52rem;color:#1e202e;letter-spacing:2px">click anywhere to close</div>';
+    eg.onclick=()=>eg.remove();document.body.appendChild(eg);
+  }
+});
+</script>
+</body>
+</html>
